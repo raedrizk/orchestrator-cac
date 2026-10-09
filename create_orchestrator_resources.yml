@@ -1,0 +1,66 @@
+---
+- name: Test orchestrator_cac
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars:
+    resource_state: present
+
+  tasks:
+    - name: Authenticate to the orchestrator
+      ansible.builtin.include_role:
+        name: authenticate
+
+    - name: Manage identity providers
+      ansible.builtin.include_role:
+        name: manage_identity_providers
+      vars:
+        aap_identity_provider_aap_url: "{{ item.aap_url }}"
+        aap_identity_provider_organization: "{{ item.organization }}"
+        aap_identity_provider_admin_username: "{{ item.admin_username }}"
+        aap_identity_provider_admin_password: "{{ item.admin_password }}"
+        aap_identity_provider_insecure_skip_tls_verify: "{{ item.insecure_skip_tls_verify }}"
+      loop: "{{ aap_identity_providers }}"
+
+    - name: Create projects
+      ansible.builtin.include_role:
+        name: manage_project
+      vars:
+        project_name: "{{ item.name }}"
+        project_description: "{{ item.description }}"
+        project_state: "{{ resource_state }}"
+      loop: "{{ projects }}"
+
+    - name: Create credentials
+      ansible.builtin.include_role:
+        name: manage_credential
+      vars:
+        credential_name: "{{ item.name }}"
+        credential_description: "{{ item.description }}"
+        credential_type_name: "{{ item.type_name }}"
+        credential_project_name: "{{ item.project_name }}"
+        credential_inputs: "{{ item.inputs }}"
+        credential_state: "{{ resource_state }}"
+      loop: "{{ credentials }}"
+
+    - name: Manage integrations
+      ansible.builtin.include_role:
+        name: manage_integration
+      vars:
+        integration_name: "{{ item.name }}"
+        integration_description: "{{ item.description }}"
+        integration_type: "{{ item.integration_type }}"
+        integration_credential_name: "{{ item.credential_name }}"
+        integration_configuration: "{{ item.configuration }}"
+        integration_state: "{{ resource_state }}"
+      loop: "{{ integrations }}"
+
+    # - name: Manage workflows
+    #   ansible.builtin.include_role:
+    #     name: manage_workflow
+    #   vars:
+    #     workflow_project_name: "{{ item.project_name }}"
+    #     workflow_name: "{{ item.name }}"
+    #     workflow_definition_file: "{{ item.definition_file }}"
+    #   loop: "{{ workflows }}"

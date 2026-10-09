@@ -1,0 +1,29 @@
+---
+- name: List integrations
+  ansible.builtin.uri:
+    url: "{{ orchestrator_host }}/api/v1/integrations?limit=100"
+    method: GET
+    headers:
+      Authorization: "Bearer {{ orchestrator_token }}"
+    status_code: 200
+    validate_certs: "{{ orchestrator_validate_certs }}"
+  register: all_integrations
+
+- name: Find integration by name
+  ansible.builtin.set_fact:
+    matching_integrations: "{{ all_integrations.json.resources | selectattr('name', 'equalto', integration_name) | list }}"
+
+- name: Integration does not exist
+  ansible.builtin.debug:
+    msg: "Integration '{{ integration_name }}' not found, nothing to delete"
+  when: matching_integrations | length == 0
+
+- name: Delete the integration
+  ansible.builtin.uri:
+    url: "{{ orchestrator_host }}/api/v1/integrations/{{ matching_integrations[0].id }}"
+    method: DELETE
+    headers:
+      Authorization: "Bearer {{ orchestrator_token }}"
+    status_code: 204
+    validate_certs: "{{ orchestrator_validate_certs }}"
+  when: matching_integrations | length > 0

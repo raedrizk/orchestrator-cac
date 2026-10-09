@@ -1,0 +1,8 @@
+---
+- name: Create project
+  ansible.builtin.include_tasks: create_project.yml
+  when: project_state == "present"
+
+- name: Delete project
+  ansible.builtin.include_tasks: delete_project.yml
+  when: project_state == "absent"

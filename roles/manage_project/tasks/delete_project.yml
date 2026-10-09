@@ -1,0 +1,29 @@
+---
+- name: Look up project by name
+  ansible.builtin.uri:
+    url: "{{ orchestrator_host }}/api/v1/projects?name={{ project_name | urlencode }}"
+    method: GET
+    headers:
+      Authorization: "Bearer {{ orchestrator_token }}"
+    status_code: 200
+    validate_certs: "{{ orchestrator_validate_certs }}"
+  register: lookup_response
+
+- name: Project does not exist
+  ansible.builtin.debug:
+    msg: "Project '{{ project_name }}' not found, nothing to delete"
+  when: lookup_response.json.resources | length == 0
+
+# - name: Stop executing this role if Project doesn't exist
+#   ansible.builtin.meta: end_role
+#   when: lookup_response.json.resources | length == 0
+
+- name: Delete the project
+  ansible.builtin.uri:
+    url: "{{ orchestrator_host }}/api/v1/projects/{{ lookup_response.json.resources[0].id }}"
+    method: DELETE
+    headers:
+      Authorization: "Bearer {{ orchestrator_token }}"
+    status_code: 204
+    validate_certs: "{{ orchestrator_validate_certs }}"
+  when: lookup_response.json.resources | length > 0

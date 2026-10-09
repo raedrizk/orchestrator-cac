@@ -1,0 +1,7 @@
+---
+aap_identity_provider_aap_url: ""
+aap_identity_provider_organization: ""
+aap_identity_provider_admin_username: ""
+aap_identity_provider_admin_password: ""
+aap_identity_provider_insecure_skip_tls_verify: true
+aap_identity_provider_state: "present"

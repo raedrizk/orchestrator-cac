@@ -1,0 +1,27 @@
+---
+- name: Look up project by name
+  ansible.builtin.uri:
+    url: "{{ orchestrator_host }}/api/v1/projects?name={{ credential_project_name | urlencode }}"
+    method: GET
+    headers:
+      Authorization: "Bearer {{ orchestrator_token }}"
+    status_code: 200
+    validate_certs: "{{ orchestrator_validate_certs }}"
+  register: project_lookup
+
+- name: Fail if project not found
+  ansible.builtin.fail:
+    msg: "Project '{{ credential_project_name }}' not found"
+  when: project_lookup.json.resources | length == 0
+
+- name: Set project ID
+  ansible.builtin.set_fact:
+    credential_project_id: "{{ project_lookup.json.resources[0].id }}"
+
+- name: Create credential
+  ansible.builtin.include_tasks: create_credential.yml
+  when: credential_state == "present"
+
+- name: Delete credential
+  ansible.builtin.include_tasks: delete_credential.yml
+  when: credential_state == "absent"

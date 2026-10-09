@@ -1,0 +1,57 @@
+---
+- name: Check if integration already exists
+  ansible.builtin.uri:
+    url: "{{ orchestrator_host }}/api/v1/integrations?limit=100"
+    method: GET
+    headers:
+      Authorization: "Bearer {{ orchestrator_token }}"
+    status_code: 200
+    validate_certs: "{{ orchestrator_validate_certs }}"
+  register: existing_integrations
+
+- name: Integration already exists
+  ansible.builtin.debug:
+    msg: "Integration '{{ integration_name }}' already exists, skipping creation"
+  when: existing_integrations.json.resources | selectattr('name', 'equalto', integration_name) | list | length > 0
+
+- name: Create the integration
+  ansible.builtin.uri:
+    url: "{{ orchestrator_host }}/api/v1/integrations"
+    method: POST
+    body_format: json
+    body:
+      name: "{{ integration_name }}"
+      description: "{{ integration_description | default(omit) }}"
+      integration_type: "{{ integration_type }}"
+      configuration: "{{ integration_configuration }}"
+      management_credential_id: "{{ integration_credential_id }}"
+    headers:
+      Authorization: "Bearer {{ orchestrator_token }}"
+      Content-Type: "application/json"
+    status_code: 201
+    validate_certs: "{{ orchestrator_validate_certs }}"
+  register: create_integration_response
+  when: existing_integrations.json.resources | selectattr('name', 'equalto', integration_name) | list | length == 0
+
+- name: Validate the integration
+  ansible.builtin.uri:
+    url: "{{ orchestrator_host }}/api/v1/integrations/{{ create_integration_response.json.id if create_integration_response.json.id is defined else existing_integrations.json.resources[0].id }}/validate"
+    method: POST
+    headers:
+      Authorization: "Bearer {{ orchestrator_token }}"
+      Content-Type: "application/json"
+    status_code: 200
+    validate_certs: "{{ orchestrator_validate_certs }}"
+  register: validate_integration_response
+
+- name: Refresh the integration (MCP Servers and LLM Providers)
+  ansible.builtin.uri:
+    url: "{{ orchestrator_host }}/api/v1/integrations/{{ create_integration_response.json.id if create_integration_response.json.id is defined else existing_integrations.json.resources[0].id }}/refresh"
+    method: POST
+    headers:
+      Authorization: "Bearer {{ orchestrator_token }}"
+      Content-Type: "application/json"
+    status_code: 200
+    validate_certs: "{{ orchestrator_validate_certs }}"
+  register: refresh_integration_response
+  when: integration_type in ['mcp_server', 'llm_provider']

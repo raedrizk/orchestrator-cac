@@ -1,0 +1,37 @@
+---
+- name: Check if project already exists
+  ansible.builtin.uri:
+    url: "{{ orchestrator_host }}/api/v1/projects?name={{ project_name | urlencode }}"
+    method: GET
+    headers:
+      Authorization: "Bearer {{ orchestrator_token }}"
+    status_code: 200
+    validate_certs: "{{ orchestrator_validate_certs }}"
+  register: existing_projects
+
+- name: Project already exists
+  ansible.builtin.debug:
+    msg: "Project '{{ project_name }}' already exists (id: {{ existing_projects.json.resources[0].id }})"
+  when: existing_projects.json.resources | length > 0
+
+# - name: Stop executing this role if Project already exists
+#   ansible.builtin.meta: end_role
+#   when: existing_projects.json.resources | length > 0
+
+- name: Create the project
+  ansible.builtin.uri:
+    url: "{{ orchestrator_host }}/api/v1/projects"
+    method: POST
+    body_format: json
+    body:
+      name: "{{ project_name }}"
+      description: "{{ project_description | default(omit) }}"
+      labels: "{{ project_labels }}"
+    headers:
+      Authorization: "Bearer {{ orchestrator_token }}"
+      Content-Type: "application/json"
+    status_code: 201
+    validate_certs: "{{ orchestrator_validate_certs }}"
+  register: create_response
+  when: existing_projects.json.resources | length == 0
+

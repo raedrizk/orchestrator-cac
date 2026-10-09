@@ -1,0 +1,22 @@
+---
+- name: Look up credential by name
+  ansible.builtin.uri:
+    url: "{{ orchestrator_host }}/api/v1/credentials?limit=100"
+    method: GET
+    headers:
+      Authorization: "Bearer {{ orchestrator_token }}"
+    status_code: 200
+    validate_certs: "{{ orchestrator_validate_certs }}"
+  register: credentials_lookup
+
+- name: Find matching credential
+  ansible.builtin.set_fact:
+    integration_credential_id: "{{ credentials_lookup.json.resources | selectattr('name', 'equalto', integration_credential_name) | map(attribute='id') | first }}"
+
+- name: Create integration
+  ansible.builtin.include_tasks: create_integration.yml
+  when: integration_state == "present"
+
+- name: Delete integration
+  ansible.builtin.include_tasks: delete_integration.yml
+  when: integration_state == "absent"

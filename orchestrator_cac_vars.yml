@@ -1,0 +1,72 @@
+---
+aap_identity_providers:
+  - aap_url: "https://<AAP_HOSTNAME>"
+    organization: "<ORGANIZATION_NAME>"
+    admin_username: "<AAP_ADMIN_USERNAME>"
+    admin_password: "<AAP_ADMIN_PASSWORD>"
+    insecure_skip_tls_verify: false
+
+projects:
+  - name: "<PROJECT_NAME>"
+    description: "<PROJECT_DESCRIPTION>"
+
+credentials:
+  - name: "<AAP_CREDENTIAL_NAME>"
+    description: "<AAP_CREDENTIAL_DESCRIPTION>"
+    type_name: "Ansible Automation Platform"
+    project_name: "<PROJECT_NAME>"
+    inputs:
+      username: "<AAP_USERNAME>"
+      password: "<AAP_PASSWORD>"
+  - name: "<LLM_CREDENTIAL_NAME>"
+    description: "<LLM_CREDENTIAL_DESCRIPTION>"
+    type_name: "LLM Provider"
+    project_name: "<PROJECT_NAME>"
+    inputs:
+      api_key: "<LLM_API_KEY>"
+  - name: "<MCP_CREDENTIAL_NAME>"
+    description: "<MCP_CREDENTIAL_DESCRIPTION>"
+    type_name: "HTTP Bearer Token"
+    project_name: "<PROJECT_NAME>"
+    inputs:
+      token: "<MCP_BEARER_TOKEN>"
+  - name: "<GITHUB_MCP_CREDENTIAL_NAME>"
+    description: "<GITHUB_MCP_CREDENTIAL_DESCRIPTION>"
+    type_name: "HTTP Bearer Token"
+    project_name: "<PROJECT_NAME>"
+    inputs:
+      token: "<GITHUB_MCP_BEARER_TOKEN>"
+
+integrations:
+  - name: "<AAP_INTEGRATION_NAME>"
+    description: ""
+    integration_type: "ansible_automation_platform"
+    credential_name: "<AAP_CREDENTIAL_NAME>"
+    configuration:
+      integration_type: "ansible_automation_platform"
+      base_url: "https://<AAP_HOSTNAME>"
+
+  - name: "<LLM_INTEGRATION_NAME>"
+    description: "<LLM_INTEGRATION_DESCRIPTION>"
+    integration_type: "llm_provider"
+    credential_name: "<LLM_CREDENTIAL_NAME>"
+    configuration:
+      integration_type: "llm_provider"
+      provider_hint: "<LLM_PROVIDER_HINT>"
+      base_url: "https://<LLM_PROVIDER_HOSTNAME>/v1"
+
+  - name: "<AAP_MCP_INTEGRATION_NAME>"
+    description: "<AAP_MCP_INTEGRATION_DESCRIPTION>"
+    integration_type: "mcp_server"
+    credential_name: "<MCP_CREDENTIAL_NAME>"
+    configuration:
+      integration_type: "mcp_server"
+      base_url: "https://<AAP_HOSTNAME>:<MCP_PORT>/mcp"
+
+  - name: "<GITHUB_MCP_INTEGRATION_NAME>"
+    description: "<GITHUB_MCP_INTEGRATION_DESCRIPTION>"
+    integration_type: "mcp_server"
+    credential_name: "<GITHUB_MCP_CREDENTIAL_NAME>"
+    configuration:
+      integration_type: "mcp_server"
+      base_url: "https://<GITHUB_MCP_HOSTNAME>/mcp"

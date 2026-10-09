@@ -1,0 +1,16 @@
+---
+- name: Create AAP Identity Provider if it does not exist
+  ansible.builtin.uri:
+    url: "{{ orchestrator_host }}/api/v1/identity_providers/setup_aap_oidc"
+    method: POST
+    headers:
+      Authorization: "Bearer {{ orchestrator_token }}"
+    body_format: json
+    body:
+      aap_url: "{{ aap_identity_provider_aap_url }}"
+      organization: "{{ aap_identity_provider_organization }}"
+      admin_username: "{{ aap_identity_provider_admin_username }}"
+      admin_password: "{{ aap_identity_provider_admin_password }}"
+      insecure_skip_tls_verify: "{{ aap_identity_provider_insecure_skip_tls_verify }}"
+    status_code: 201
+    validate_certs: "{{ orchestrator_validate_certs }}"

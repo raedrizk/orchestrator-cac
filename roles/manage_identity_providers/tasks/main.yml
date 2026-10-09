@@ -1,0 +1,24 @@
+---
+- name: List identity providers
+  ansible.builtin.uri:
+    url: "{{ orchestrator_host }}/api/v1/identity_providers"
+    method: GET
+    headers:
+      Authorization: "Bearer {{ orchestrator_token }}"
+    status_code: 200
+    validate_certs: "{{ orchestrator_validate_certs }}"
+  register: identity_providers
+
+- name: Debug identity providers
+  ansible.builtin.debug:
+    var: identity_providers.json.resources | length
+    # msg: "{{ identity_providers.json.resources }}"
+
+- name: Set identity providers fact
+  ansible.builtin.set_fact:
+    identity_providers_count: "{{ identity_providers.json.resources | length | int }}"
+    identity_providers_list: "{{ identity_providers.json.resources }}"
+
+- name: Create AAP Identity Provider if it does not exist
+  ansible.legacy.include_tasks: create_identity_provider.yml
+  when: aap_identity_provider_state == "present" and identity_providers_count == 0

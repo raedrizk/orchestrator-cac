@@ -1,0 +1,5 @@
+orchestrator_host: "https://orchestrator-host"
+orchestrator_validate_certs: false
+
+orchestrator_username: ""
+orchestrator_password: ""

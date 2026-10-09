@@ -1,0 +1,18 @@
+---
+- name: Authenticate to Orchestrator API
+  ansible.builtin.uri:
+    url: "{{ orchestrator_host }}/api/v1/auth/login"
+    method: POST
+    body_format: json
+    body:
+      username: "{{ orchestrator_username }}"
+      password: "{{ orchestrator_password }}"
+    headers:
+      Content-Type: "application/json"
+    status_code: 200
+    validate_certs: "{{ orchestrator_validate_certs }}"
+  register: auth_response
+
+- name: Set access token
+  ansible.builtin.set_fact:
+    orchestrator_token: "{{ auth_response.json.access_token }}"
